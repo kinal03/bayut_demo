@@ -9,6 +9,7 @@ Route::post('/login', [AuthApiController::class, 'login']);
 Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthApiController::class, 'resetPassword']);
 Route::post('/refresh', [AuthApiController::class, 'refreshToken']);
+Route::post('accept-invite', [InvitationApiController::class, 'acceptInvite']);
 
 
 Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctumMultiTenant::class)->group(function () {
@@ -18,5 +19,4 @@ Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctu
 
     //send invitation
     Route::post('send-invite', [InvitationApiController::class, 'sendInvite']);
-    Route::post('accept-invite', [InvitationApiController::class, 'acceptInvite']);
 });
