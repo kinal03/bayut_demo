@@ -155,7 +155,7 @@ class FeaturesApiController extends Controller
         setTenantConnection($user);
 
         $request->validate([
-            'id' => 'required|array',
+            'id' => 'required',
             'status' => 'required|string'
         ]);
 
