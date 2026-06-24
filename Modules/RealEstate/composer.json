@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/realestate",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\RealEstate\\": "app/",
+            "Modules\\RealEstate\\Database\\Factories\\": "database/factories/",
+            "Modules\\RealEstate\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\RealEstate\\Tests\\": "tests/"
+        }
+    }
+}

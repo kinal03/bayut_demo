@@ -27,7 +27,8 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\UserManagement\\": "Modules/UserManagement/"
+            "Modules\\UserManagement\\": "Modules/UserManagement/",
+            "Modules\\RealEstate\\": "Modules/RealEstate/"
         },
         "files": [
             "Modules/UserManagement/app/Helpers/TenantHelper.php"
