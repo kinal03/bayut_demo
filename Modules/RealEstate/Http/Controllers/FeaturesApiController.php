@@ -148,4 +148,22 @@ class FeaturesApiController extends Controller
             'message' => 'Features deleted successfully'
         ]);
     }
+
+    public function featureStatusUpdate(Request $request)
+    {
+        $user = $request->user();
+        setTenantConnection($user);
+
+        $request->validate([
+            'id' => 'required|array',
+            'status' => 'required|string'
+        ]);
+
+        Features::where('id', $request->id)->update(['status' => $request->status]);
+
+        return response()->json([
+            "success" => true,
+            'message' => 'Features status updated successfully'
+        ]);
+    }
 }
