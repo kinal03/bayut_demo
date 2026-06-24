@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('re_features', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('arabic_name')->nullable();
             $table->string('icon')->nullable();
             $table->enum('status', ['published', 'unpublished'])->default('published');
             $table->timestamp('created_at')->useCurrent();

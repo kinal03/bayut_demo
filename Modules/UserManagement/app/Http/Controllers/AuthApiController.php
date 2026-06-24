@@ -374,7 +374,7 @@ class AuthApiController extends Controller
         ]);
     }
 
-   public function refreshToken(Request $request)
+    public function refreshToken(Request $request)
     {
         $refreshToken = $request->refresh_token;
         if ($request->filled('tenant_id')) {
@@ -468,5 +468,9 @@ class AuthApiController extends Controller
             'type' => 'central',
             'user' => $user
         ]);
+    }
+
+    public function editProfile(Request $request){
+        
     }
 }

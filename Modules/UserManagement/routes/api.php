@@ -14,6 +14,7 @@ Route::post('/refresh', [AuthApiController::class, 'refreshToken']);
 Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctumMultiTenant::class)->group(function () {
     Route::post('logout', [AuthApiController::class, 'logout']);
     Route::get('me', [AuthApiController::class, 'loginUserDetails']);
+    Route::post('edit-profile', [AuthApiController::class, 'editProfile']);
 
     //send invitation
     Route::post('send-invite', [InvitationApiController::class, 'sendInvite']);

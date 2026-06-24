@@ -10,6 +10,7 @@ class Features extends Model
 
     protected $fillable = [
         'name',
+        'arabic_name',
         'icon',
         'status',
     ];

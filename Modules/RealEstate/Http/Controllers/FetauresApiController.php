@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Modules\RealEstate\Models\Features;
 
-class InvitationApiController extends Controller
+class FeaturesApiController extends Controller
 {
     public function index(Request $req)
     {
@@ -20,7 +20,7 @@ class InvitationApiController extends Controller
         setTenantConnection($user);
 
         if ($req->select == true) {
-            return Features::select('id', 'name','icon')
+            return Features::select('id', 'name','arabic_name', 'icon')
                 ->where('status', 'published')
                 ->get();
         }
@@ -29,7 +29,7 @@ class InvitationApiController extends Controller
             $sort  = $req->sort ?? 'created_at';
             $dir   = $req->dir ?? 'desc';
 
-            $query = Features::select('id', 'name', 'icon', 'status','created_at');
+            $query = Features::select('id', 'name', 'arabic_name', 'icon', 'status','created_at');
 
             if ($req->has('search') && !empty($req->search)) {
                 $query->where('name', 'like', '%' . $req->search . '%');
@@ -70,6 +70,7 @@ class InvitationApiController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'arabic_name' => 'string|max:255',
             'status' => 'required|string'
         ]);
 
@@ -80,6 +81,7 @@ class InvitationApiController extends Controller
 
         $field = Features::create([
             'name' => $request->name,
+            'arabic_name' => $request->arabic_name,
             'icon' => $request->icon,
             'status' => $request->status,
             'created_at' => now()
@@ -113,11 +115,13 @@ class InvitationApiController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'arabic_name' => 'string|max:255',
             'status' => 'required|string'
         ]);
 
         $field->update([
             'name' => $request->name,
+            'arabic_name' => $request->arabic_name,
             'icon' => $request->icon,
             'status' => $request->status,
             'updated_at' => now()
