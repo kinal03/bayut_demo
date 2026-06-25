@@ -462,7 +462,6 @@ class AuthApiController extends Controller
         */
 
         $user = (new User)->setConnection($conn)
-            ->select('id', 'first_name', 'last_name', 'email', 'user_type', 'profile_picture', 'description', 'tenancy_id')
             ->find($authUser->id);
 
         return response()->json([
