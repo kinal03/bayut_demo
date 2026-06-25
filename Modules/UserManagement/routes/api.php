@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\UserManagement\Http\Controllers\UserManagementController;
 use Modules\UserManagement\App\Http\Controllers\AuthApiController;
 use Modules\UserManagement\App\Http\Controllers\InvitationApiController;
+use Modules\UserManagement\App\Http\Controllers\UserApiController;
 
 Route::post('/login', [AuthApiController::class, 'login']);
 Route::post('/forgot-password', [AuthApiController::class, 'forgotPassword']);
@@ -20,4 +21,7 @@ Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctu
 
     //send invitation
     Route::post('send-invite', [InvitationApiController::class, 'sendInvite']);
+
+    //User Management
+    Route::get('get-agency', [UserApiController::class, 'getAllAgency']);
 });
