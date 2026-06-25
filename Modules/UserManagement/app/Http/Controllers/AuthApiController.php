@@ -13,6 +13,7 @@ use Modules\UserManagement\App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Modules\UserManagement\App\Models\TenantPersonalAccessToken,Modules\UserManagement\App\Models\CentralTenantTelations,Modules\UserManagement\App\Models\Tenant;
 use Illuminate\Support\Facades\Mail;
 use Modules\UserManagement\App\Mail\ForgotPasswordMail;
@@ -471,6 +472,132 @@ class AuthApiController extends Controller
     }
 
     public function editProfile(Request $request){
-        
+       
+        $validator = Validator::make($request->all(), [
+            'first_name'       => 'required|string|max:255',
+            'last_name'        => 'required|string|max:255',
+            'mobile'           => 'nullable|string|max:20',
+            'whatsapp'         => 'nullable|string|max:20',
+            'landline'         => 'nullable|string|max:20',
+            'gender'           => 'nullable|in:Male,Female,Other',
+            'nationality'      => 'nullable|string|max:100',
+            'experience'       => 'nullable|integer|min:0',
+            'languages'        => 'nullable|string|max:255',
+            'specialities'     => 'nullable|string|max:255',
+            'speciality_areas' => 'nullable|string|max:255',
+            'description'      => 'nullable|string',
+            'profile_picture'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+
+            'socials.facebook'  => 'nullable|url',
+            'socials.instagram' => 'nullable|url',
+            'socials.linkedin'  => 'nullable|url',
+            'socials.twitter'   => 'nullable|url',
+            'socials.youtube'   => 'nullable|url',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+         $bearer = $request->bearerToken();
+        $authUser = $request->user();
+
+        if (!$bearer) {
+            return response()->json(['message' => 'Token not provided'], 401);
+        }
+
+        // Try to find token in current context (whether central or tenant)
+        $conn = $authUser ? $authUser->getConnectionName() : null;
+
+        if ($conn && $conn !== 'mysql' && $conn !== config('database.default')) {
+            $token = TenantPersonalAccessToken::findTokenOnConnection($bearer, $conn);
+        } else {
+            $token = PersonalAccessToken::findToken($bearer);
+        }
+
+        // If not found in current context, try central
+        if (!$token) {
+            tenancy()->end();
+            $token = PersonalAccessToken::findToken($bearer);
+        }
+
+        if (!$token) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        if ($token->tenant_id && $conn !== 'mysql') {
+            $tenant = Tenant::find($token->tenant_id);
+
+            if (!$tenant) {
+                return response()->json([
+                    'message' => 'Tenant not found'
+                ], 404);
+            }
+
+            $conn = getTenantConnection($tenant);
+        } else {
+            tenancy()->end();
+            $conn = 'mysql';
+        }
+
+        $user = (new User)->setConnection($conn)->find($token->tokenable_id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Upload profile image
+        if ($request->hasFile('profile_picture')) {
+
+            if ($user && $user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            $uploadPath = $user->user_type === 'agent'
+                ? 'uploads/' . $user->tenancy_id . '/profile'
+                : 'uploads/profile';
+
+            // Create directory if it doesn't exist
+            if (!Storage::disk('public')->exists($uploadPath)) {
+                Storage::disk('public')->makeDirectory($uploadPath);
+            }
+
+            $fileName = time() . '_' . $request->file('profile_picture')->getClientOriginalName();
+
+            $path = $request->file('profile_picture')
+                ->storeAs($uploadPath, $fileName, 'public');
+
+            $user->profile_picture = $path;
+        }
+
+        $user->update([
+            'first_name'       => $request->first_name,
+            'last_name'        => $request->last_name,
+            'mobile'           => $request->mobile,
+            'whatsapp'         => $request->whatsapp,
+            'landline'         => $request->landline,
+            'gender'           => $request->gender,
+            'nationality'      => $request->nationality,
+            'experience'       => $request->experience,
+            'languages'        => $request->languages,
+            'specialities'     => $request->specialities,
+            'speciality_areas' => $request->speciality_areas,
+            'description'      => $request->description,
+            'facebook'         => $request->socials['facebook'] ?? null,
+            'instagram'        => $request->socials['instagram'] ?? null,
+            'linkedin'         => $request->socials['linkedin'] ?? null,
+            'twitter'          => $request->socials['twitter'] ?? null,
+            'youtube'          => $request->socials['youtube'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'data'    => $user,
+        ]);
+
     }
 }

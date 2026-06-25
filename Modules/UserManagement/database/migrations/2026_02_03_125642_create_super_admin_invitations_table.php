@@ -21,6 +21,25 @@ return new class extends Migration {
             $table->enum('status', ['pending','processing', 'accepted', 'rejected', 'expired'])->default('pending');
             $table->timestamp('expires_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
+            $table->string('mobile')->nullable();
+            $table->string('whatsapp')->nullable();
+            $table->string('landline')->nullable();
+
+            $table->enum('gender', ['Male', 'Female', 'Other'])->nullable();
+            $table->string('nationality')->nullable();
+
+            $table->integer('experience')->nullable();
+
+            $table->string('languages')->nullable(); // English, Arabic, etc.
+            $table->string('specialities')->nullable(); // Residential Sales
+            $table->string('speciality_areas')->nullable(); // Dubai Marina
+
+            // Social Links
+            $table->string('facebook')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('linkedin')->nullable();
+            $table->string('twitter')->nullable();
+            $table->string('youtube')->nullable();
             $table->timestamps();
 
             $table->foreign('created_by')

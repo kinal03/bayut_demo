@@ -64,15 +64,29 @@ class InvitationApiController extends Controller
         }
 
         $invitation = $invitationModel::create([
-            'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'token'      => Str::random(64),
-            'user_type'  => $user_type,
-            'status'     => 'pending',
-            'tenant_id'  => $user->tenancy_id,
-            'expires_at' => now()->addDays(5),
-            'created_by' => $user->id,
+            'first_name'       => $request->first_name,
+            'last_name'        => $request->last_name,
+            'email'            => $request->email,
+            'mobile'           => $request->mobile,
+            'whatsapp'         => $request->whatsapp,
+            'landline'         => $request->landline,
+            'gender'           => $request->gender,
+            'nationality'      => $request->nationality,
+            'experience'       => $request->experience,
+            'languages'        => $request->languages,
+            'specialities'     => $request->specialities,
+            'speciality_areas' => $request->speciality_areas,
+            'facebook'         => $request->socials['facebook'] ?? null,
+            'instagram'        => $request->socials['instagram'] ?? null,
+            'linkedin'         => $request->socials['linkedin'] ?? null,
+            'twitter'          => $request->socials['twitter'] ?? null,
+            'youtube'          => $request->socials['youtube'] ?? null,
+            'token'            => Str::random(64),
+            'user_type'        => $user_type,
+            'status'           => 'pending',
+            'tenant_id'        => $user->tenancy_id,
+            'expires_at'       => now()->addDays(5),
+            'created_by'       => $user->id,
         ]);
 
         $payload = [
@@ -212,6 +226,20 @@ class InvitationApiController extends Controller
                     'tenancy_id' => $tenant->id,
                     'email_verified_at' => now(),
                     'password' => Hash::make($request->password),
+                    'mobile'           => $invitation->mobile,
+                    'whatsapp'         => $invitation->whatsapp,
+                    'landline'         => $invitation->landline,
+                    'gender'           => $invitation->gender,
+                    'nationality'      => $invitation->nationality,
+                    'experience'       => $invitation->experience,
+                    'languages'        => $invitation->languages,
+                    'specialities'     => $invitation->specialities,
+                    'speciality_areas' => $invitation->speciality_areas,
+                    'facebook'         => $invitation->facebook,
+                    'instagram'        => $invitation->instagram,
+                    'linkedin'         => $invitation->linkedin,
+                    'twitter'          => $invitation->twitter,
+                    'youtube'          => $invitation->youtube,
                 ]);
 
             $invitation->update([
@@ -333,6 +361,20 @@ class InvitationApiController extends Controller
                 'user_type' => 'agency',
                 'tenancy_id' => $tenant->id, // NOT tenancy_id
                 'email_verified_at' => now(),
+                'mobile'           => $invitation->mobile,
+                'whatsapp'         => $invitation->whatsapp,
+                'landline'         => $invitation->landline,
+                'gender'           => $invitation->gender,
+                'nationality'      => $invitation->nationality,
+                'experience'       => $invitation->experience,
+                'languages'        => $invitation->languages,
+                'specialities'     => $invitation->specialities,
+                'speciality_areas' => $invitation->speciality_areas,
+                'facebook'         => $invitation->facebook,
+                'instagram'        => $invitation->instagram,
+                'linkedin'         => $invitation->linkedin,
+                'twitter'          => $invitation->twitter,
+                'youtube'          => $invitation->youtube,
             ]);
 
             /*

@@ -23,6 +23,25 @@ return new class extends Migration {
             $table->boolean('is_blocked')->default(false);
             $table->string('profile_picture')->nullable();
             $table->longText('description')->nullable();
+            $table->string('mobile')->nullable();
+            $table->string('whatsapp')->nullable();
+            $table->string('landline')->nullable();
+
+            $table->enum('gender', ['Male', 'Female', 'Other'])->nullable();
+            $table->string('nationality')->nullable();
+
+            $table->integer('experience')->nullable();
+
+            $table->string('languages')->nullable(); // English, Arabic, etc.
+            $table->string('specialities')->nullable(); // Residential Sales
+            $table->string('speciality_areas')->nullable(); // Dubai Marina
+
+            // Social Links
+            $table->string('facebook')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('linkedin')->nullable();
+            $table->string('twitter')->nullable();
+            $table->string('youtube')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

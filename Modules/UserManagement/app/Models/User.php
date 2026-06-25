@@ -28,6 +28,20 @@ class User extends Authenticatable
         'user_type',
         'description',
         'profile_picture',
+        'mobile',
+        'whatsapp',
+        'landline',
+        'gender',
+        'nationality',
+        'experience',
+        'languages',
+        'specialities',
+        'speciality_areas',
+        'facebook',
+        'instagram',
+        'linkedin',
+        'twitter',
+        'youtube',
         'is_blocked'
     ];
 
@@ -51,6 +65,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'experience' => 'integer',
         ];
+    }
+    protected $appends = [
+        'full_name'
+    ];
+
+    public function getFullNameAttribute()
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 }
