@@ -485,7 +485,7 @@ class AuthApiController extends Controller
             'specialities'     => 'nullable|string|max:255',
             'speciality_areas' => 'nullable|string|max:255',
             'description'      => 'nullable|string',
-            'profile_picture'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'profile_picture'  => 'nullable',
 
             'socials.facebook'  => 'nullable|url',
             'socials.instagram' => 'nullable|url',
