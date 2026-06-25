@@ -565,12 +565,45 @@ class AuthApiController extends Controller
                 Storage::disk('public')->makeDirectory($uploadPath);
             }
 
-            $fileName = time() . '_' . $request->file('profile_picture')->getClientOriginalName();
+           if ($request->hasFile('profile_picture')) {
 
-            $path = $request->file('profile_picture')
-                ->storeAs($uploadPath, $fileName, 'public');
+                $fileName = time() . '_' . Str::random(10) . '.' .
+                    $request->file('profile_picture')->getClientOriginalExtension();
 
-            $user->profile_picture = $path;
+                $filePath = $request->file('profile_picture')
+                    ->storeAs($uploadPath, $fileName, 'public');
+
+                $user->profile_picture = $filePath;
+            }
+
+            // Case 2: Base64 Image
+            elseif (is_string($request->profile_picture)) {
+
+                $image = $request->profile_picture;
+
+                if (preg_match('/^data:image\/(\w+);base64,/', $image, $matches)) {
+                    $extension = strtolower($matches[1]);
+                    $image = substr($image, strpos($image, ',') + 1);
+                } else {
+                    $extension = 'png';
+                }
+
+                $imageData = base64_decode(str_replace(' ', '+', $image));
+
+                if ($imageData === false) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid base64 image.'
+                    ], 422);
+                }
+
+                $fileName = Str::uuid() . '.' . $extension;
+                $filePath = $uploadPath . '/' . $fileName;
+
+                Storage::disk('public')->put($filePath, $imageData);
+
+                $user->profile_picture = $filePath;
+            }
         }
 
         $user->update([
