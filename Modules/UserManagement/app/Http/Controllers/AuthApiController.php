@@ -549,60 +549,60 @@ class AuthApiController extends Controller
         }
 
         // Upload profile image
+       $uploadPath = $user->user_type === 'agent'
+            ? 'uploads/' . $user->tenancy_id . '/profile'
+            : 'uploads/profile';
+
+        Storage::disk('public')->makeDirectory($uploadPath);
+
+        // Delete old image
+        if (!empty($user->profile_picture)) {
+            $oldPath = str_replace('storage/', '', $user->profile_picture);
+
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        // Case 1: File Upload
         if ($request->hasFile('profile_picture')) {
 
-            if ($user && $user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
-                Storage::disk('public')->delete($user->profile_picture);
+            $fileName = time() . '_' . Str::random(10) . '.' .
+                $request->file('profile_picture')->getClientOriginalExtension();
+
+            $filePath = $request->file('profile_picture')
+                ->storeAs($uploadPath, $fileName, 'public');
+
+            $user->profile_picture = 'storage/' . $filePath;
+        }
+
+        // Case 2: Base64 Image
+        elseif (!empty($request->profile_picture) && is_string($request->profile_picture)) {
+
+            $image = $request->profile_picture;
+
+            if (preg_match('/^data:image\/(\w+);base64,/', $image, $matches)) {
+                $extension = strtolower($matches[1]);
+                $image = substr($image, strpos($image, ',') + 1);
+            } else {
+                $extension = 'png';
             }
 
-            $uploadPath = $user->user_type === 'agent'
-                ? 'uploads/' . $user->tenancy_id . '/profile'
-                : 'uploads/profile';
+            $imageData = base64_decode($image);
 
-            // Create directory if it doesn't exist
-            if (!Storage::disk('public')->exists($uploadPath)) {
-                Storage::disk('public')->makeDirectory($uploadPath);
+            if ($imageData === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid base64 image'
+                ], 422);
             }
 
-           if ($request->hasFile('profile_picture')) {
+            $fileName = Str::uuid() . '.' . $extension;
+            $filePath = $uploadPath . '/' . $fileName;
 
-                $fileName = time() . '_' . Str::random(10) . '.' .
-                    $request->file('profile_picture')->getClientOriginalExtension();
+            Storage::disk('public')->put($filePath, $imageData);
 
-                $filePath = $request->file('profile_picture')
-                    ->storeAs($uploadPath, $fileName, 'public');
-
-                $user->profile_picture = $filePath;
-            }
-
-            // Case 2: Base64 Image
-            elseif (is_string($request->profile_picture)) {
-
-                $image = $request->profile_picture;
-
-                if (preg_match('/^data:image\/(\w+);base64,/', $image, $matches)) {
-                    $extension = strtolower($matches[1]);
-                    $image = substr($image, strpos($image, ',') + 1);
-                } else {
-                    $extension = 'png';
-                }
-
-                $imageData = base64_decode(str_replace(' ', '+', $image));
-
-                if ($imageData === false) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Invalid base64 image.'
-                    ], 422);
-                }
-
-                $fileName = Str::uuid() . '.' . $extension;
-                $filePath = $uploadPath . '/' . $fileName;
-
-                Storage::disk('public')->put($filePath, $imageData);
-
-                $user->profile_picture = $filePath;
-            }
+            $user->profile_picture = 'storage/' . $filePath;
         }
 
         $user->update([
