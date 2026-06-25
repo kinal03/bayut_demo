@@ -632,4 +632,26 @@ class AuthApiController extends Controller
         ]);
 
     }
+
+    public function changePassword(Request $request){
+        
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $authUser = $request->user();
+
+        setTenantConnection($authUser);
+
+        if (!Hash::check($request->current_password, $authUser->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 400);
+        }
+
+        $authUser->password = Hash::make($request->new_password);
+        $authUser->setRememberToken(Str::random(60));
+        $authUser->save();
+
+        return response()->json(['message' => 'Password changed successfully']);
+    }
 }

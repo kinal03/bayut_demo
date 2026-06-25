@@ -16,6 +16,7 @@ Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctu
     Route::post('logout', [AuthApiController::class, 'logout']);
     Route::get('me', [AuthApiController::class, 'loginUserDetails']);
     Route::post('edit-profile', [AuthApiController::class, 'editProfile']);
+    Route::post('change-password', [AuthApiController::class, 'changePassword']);
 
     //send invitation
     Route::post('send-invite', [InvitationApiController::class, 'sendInvite']);
