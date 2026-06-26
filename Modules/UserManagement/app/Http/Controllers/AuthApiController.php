@@ -26,6 +26,7 @@ class AuthApiController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'type' => 'required|in:super_admin,agency'
         ]);
 
         tenancy()->end();
@@ -33,6 +34,9 @@ class AuthApiController extends Controller
         $centralUser = User::select('id', 'first_name', 'last_name', 'email', 'password', 'email_verified_at', 'user_type','is_blocked','tenancy_id')->where('email', $request->email)->first();
 
         if ($centralUser) {
+            if($request->type != $centralUser->user_type){
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
             if ($centralUser->is_blocked == true) {
                 $contactRole = match($centralUser->user_type) {
                     'agent'     => 'Agency',
@@ -50,76 +54,82 @@ class AuthApiController extends Controller
                     'central',
                     $centralUser->tenancy_id,
                     60,
-                    120
+                    120,
+                    $centralUser->user_type
                 );
             } else {
                 return response()->json(['message' => 'Invalid credentials'], 401);
             }
         }else {
-            $relation = CentralTenantTelations::where([
-                'email' => $request->email,
-                'status' => 'active'
-            ])->first();
+            if($request->type == 'agency'){
+                $relation = CentralTenantTelations::where([
+                    'email' => $request->email,
+                    'status' => 'active'
+                ])->first();
 
-            if (!$relation) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid credentials.'
-                ], 400);
-            }
+                if (!$relation) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid credentials.'
+                    ], 400);
+                }
 
-            $tenant = Tenant::find($relation->tenant_id);
+                $tenant = Tenant::find($relation->tenant_id);
 
-            if (!$tenant) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid credentials.'
-                ], 404);
-            }
+                if (!$tenant) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid credentials.'
+                    ], 404);
+                }
 
-            // tenancy()->initialize($tenant);
-            $conn = getTenantConnection($tenant);
-            $tenantUser = (new User)->setConnection($conn)->where('email', $request->email)->first();
+                // tenancy()->initialize($tenant);
+                $conn = getTenantConnection($tenant);
+                $tenantUser = (new User)->setConnection($conn)->where('email', $request->email)->first();
 
-            if (!$tenantUser) {
-                tenancy()->end();
+                if (!$tenantUser) {
+                    tenancy()->end();
 
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid Credentials.'
-                ], 400);
-            }
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid Credentials.'
+                    ], 400);
+                }
 
-            // ❌ Wrong Password
-            if (!Hash::check($request->password, $tenantUser->password)) {
+                // ❌ Wrong Password
+                if (!Hash::check($request->password, $tenantUser->password)) {
 
-                tenancy()->end();
+                    tenancy()->end();
 
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid Credentials.'
-                ], 400);
-            }
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid Credentials.'
+                    ], 400);
+                }
 
-            if ($tenantUser->is_blocked == true) {
-                $contactRole = match($tenantUser->user_type) {
-                    'agent'   => 'Agency',
-                    default    => 'Administrator',
-                };
+                if ($tenantUser->is_blocked == true) {
+                    $contactRole = match($tenantUser->user_type) {
+                        'agent'   => 'Agency',
+                        default    => 'Administrator',
+                    };
 
-                return response()->json([
-                    'success' => false,
-                    'message' => "Your account has been blocked. Please contact {$contactRole} for assistance."
-                ], 403);
-            }
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Your account has been blocked. Please contact {$contactRole} for assistance."
+                    ], 403);
+                }
 
-            return $this->generateTokens(
+                return $this->generateTokens(
                     $tenantUser,
                     'tenant',
                     $tenantUser->tenancy_id,
                     60,
-                    120
+                    120,
+                    $tenantUser->user_type
                 );
+            }else{
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
         }
     }
 
@@ -341,7 +351,7 @@ class AuthApiController extends Controller
         ]);
     }
 
-    private function generateTokens($user, $userType, $tenantId = null, $tokenExpireMinutes, $refreshExpireMinutes)
+    private function generateTokens($user, $userType, $tenantId = null, $tokenExpireMinutes, $refreshExpireMinutes,$type)
     {
         // ✅ FIX: Delete only old access tokens first, then old refresh tokens separately.
         // Previously `->tokens()->delete()` was deleting ALL tokens including valid refresh tokens.
@@ -371,7 +381,8 @@ class AuthApiController extends Controller
             'token' => $access->plainTextToken,
             'refresh_token' => $refresh->plainTextToken,
             'user_type' => $userType,
-            'tenant_id' => $tenantId
+            'tenant_id' => $tenantId,
+            'type' => $type
         ]);
     }
 
@@ -546,6 +557,29 @@ class AuthApiController extends Controller
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if($user->user_type == 'super_admin'){
+            $validator = Validator::make($request->all(), [
+                'first_name' => 'required|string|max:255',
+                'last_name'  => 'required|string|max:255',
+                'email'      => [
+                    'required',
+                    'email',
+                    'max:255',
+                    Rule::unique('mysql.users', 'email')->ignore($user->id),
+                    Rule::unique('super_admin_invitations', 'email'),
+                    Rule::unique('mysql.central_tenant_relations', 'email'),
+                ],
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user->email = $request->email;
         }
 
         // Upload profile image

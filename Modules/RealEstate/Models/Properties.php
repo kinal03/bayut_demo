@@ -1,64 +1,74 @@
 <?php
 
-namespace Modules\RealEstate\Model;
+namespace Modules\RealEstate\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Countries;
-use App\Models\States;
-use App\Models\Cities;
+use Modules\RealEstate\Models\PropertiesImages;
+use Modules\RealEstate\Models\Features;
 
 class Properties extends Model
 {
     protected $table = 're_properties';
 
     protected $fillable = [
-        'name',
+        'title',
         'permalink',
         'tenant_id',
         'created_by',
         'user_type',
+        'purpose',
+        'price',
         'type',
-        'description',
-        'content',
-        'location',
+        'completion_status',
+        'furnishing_status',
+        'reference_no',
+        'trucheck_on',
+        'added_on',
+        'neighborhood',
+        'area_size',
         'total_bedroom',
         'total_bathroom',
-        'total_floor',
-        'square',
-        'price',
+        'balcony_size',
+        'usage',
+        'ownership',
+        'parking_availability',
+        'description',
+        'project_name',
+        'developer',
+        'project_status',
+        'last_inspected',
+        'handover_year',
+        'handover_quarter',
+        'building_name',
+        'parking_spaces',
+        'building_floors',
+        'building_area',
+        'swimming_pools',
+        'elevators',
+        'permit_number',
+        'zone_name',
+        'registered_agency',
+        'rera_orn',
+        'agent_brn',
+        'location',
         'currency',
-        'is_featured',
         'status',
         'moderation_status',
         'reject_reason',
-        'expire_date',
-        'auto_renew',
-        'never_expired',
-        'latitude',
-        'longitude',
-        'zip_code',
-        'views',
-        'country_id',
-        'state_id',
-        'city_id',
-        'unique_id',
-        'private_notes',
-        'video_url',
-        'video_thumbnail',
-        'agency_id',
-        'start_date',
-        'end_date',
     ];
 
     protected $casts = [
-        'is_featured' => 'boolean',
-        'auto_renew' => 'boolean',
-        'never_expired' => 'boolean',
         'price' => 'decimal:2',
-        'square' => 'float',
-        'expire_date' => 'date',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'area_size' => 'double',
+        'balcony_size' => 'double',
+        'building_floors' => 'integer',
+        'building_area' => 'integer',
+        'swimming_pools' => 'integer',
+        'elevators' => 'integer',
+        'parking_availability' => 'boolean',
+        'trucheck_on' => 'date',
+        'added_on' => 'date',
+        'last_inspected' => 'date',
     ];
 
 
@@ -67,49 +77,19 @@ class Properties extends Model
         return url('/properties/' . $this->tenant_id . '/' . $this->permalink);
     }
 
-    public function country()
-    {
-        return $this->belongsTo(Countries::class, 'country_id');
-    }
-
-    public function state()
-    {
-        return $this->belongsTo(States::class, 'state_id');
-    }
-
-    public function city()
-    {
-        return $this->belongsTo(Cities::class, 'city_id');
-    }
-
-    public function categories()
-    {
-        return $this->belongsToMany(Categories::class, 're_property_categories');
-    }
-
     public function features()
     {
-        return $this->belongsToMany(Features::class, 're_property_features');
-    }
-
-    public function facilities()
-    {
-        return $this->hasMany(PropertyFacilities::class, 'properties_id');
+        return $this->belongsToMany(
+            Features::class,
+            're_property_features',
+            'properties_id',
+            'features_id'
+        );
     }
 
     public function images()
     {
-        return $this->hasMany(PropertiesImages::class, 'properties_id');
-    }
-
-    public function floorplans()
-    {
-        return $this->hasMany(PropertyFloorplan::class, 'properties_id');
-    }
-
-    public function customFields()
-    {
-        return $this->hasMany(PropertiesCustomFields::class, 'properties_id');
+        return $this->hasMany(PropertiesImages::class, 'properties_id')->orderByDesc('id');
     }
 
     public function toSearchableArray(): array

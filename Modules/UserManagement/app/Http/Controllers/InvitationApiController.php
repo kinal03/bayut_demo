@@ -417,4 +417,86 @@ class InvitationApiController extends Controller
             ], 500);
         }
     }
+
+    public function invitationList(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->user_type === 'agency') {
+
+            setTenantConnection($user);
+
+            $invitationTable = 'invitation_users';
+            $invitationModel = TenantUserInvitations::class;
+
+        } else {
+
+            $invitationTable = 'super_admin_invitations';
+            $invitationModel = UserInvitations::class;
+        }
+
+        $limit = $request->limit ?? 10;
+
+        $allowedSorts = [
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'user_type',
+            'status',
+            'created_at'
+        ];
+
+        $sort = in_array($request->sort, $allowedSorts)
+            ? $request->sort
+            : 'created_at';
+
+        $dir = strtolower($request->dir) === 'asc' ? 'asc' : 'desc';
+
+        $query = $invitationModel::select(
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'user_type',
+            'status',
+            'created_at'
+        );
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->user_type != null) {
+            $query->where('user_type', $request->user_type);
+        }
+
+        if ($request->has('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->search . '%')
+                    ->orWhere('last_name', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $query->whereBetween('created_at', [$request->from_date, $request->to_date]);
+        }
+
+        $inviate = $query->orderBy($sort, $dir)->paginate($limit);
+
+        return response()->json([
+            'message' => 'Invitation list retrieved successfully',
+            'status' => true,
+            'data' => $inviate
+        ]);
+    }
 }
