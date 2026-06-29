@@ -84,7 +84,7 @@ class UserApiController extends Controller
         if($user->user_type != 'agency'){
             setTenantConnection($user);
         }else{
-            $Auth = User::find($request->agency_id);
+            $Auth = User::find($request->id);
             setTenantConnection($Auth);
         }
 
