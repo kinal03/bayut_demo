@@ -195,4 +195,30 @@ class UserApiController extends Controller
             return response()->json($user);
         }
     }
+
+    public function blockAgency(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'is_blocked' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::find($request->id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $user->is_blocked = $request->is_blocked;
+        $user->save();
+
+        setTenantConnection($user);
+
+        $agents = User::where('tenancy_id', $user->tenancy_id)->update(['is_blocked' => $request->is_blocked]);
+
+        return response()->json(['message' => 'Agency blocked status updated.']);
+    }
 }
