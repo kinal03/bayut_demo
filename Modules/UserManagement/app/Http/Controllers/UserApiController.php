@@ -22,6 +22,7 @@ class UserApiController extends Controller
             'first_name',
             'last_name',
             'email',
+            'is_blocked',
             'created_at'
         ];
 
@@ -39,6 +40,7 @@ class UserApiController extends Controller
             'tenancy_id',
             'profile_picture',
             'user_type',
+            'is_blocked',
             'created_at'
         )->where('user_type', 'agency');
 
