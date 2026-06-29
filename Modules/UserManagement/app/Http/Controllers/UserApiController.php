@@ -162,9 +162,7 @@ class UserApiController extends Controller
     }
 
     public function getUserDetails(Request $request){
-        $Auth = $request->user();
-        setTenantConnection($Auth);
-
+    
         $validator = Validator::make($request->all(), [
             'id' => 'required',
         ]);
@@ -174,13 +172,9 @@ class UserApiController extends Controller
         }
 
         if ($request->filled('tenant_id')) {
-            $tenant = Tenant::find($request->tenant_id);
-            $User = User::find($request->tenant_id);
-            setTenantConnection($User);
-
-            if (!$tenant) {
-                return response()->json(['message' => 'Tenant not found.'], 404);
-            }
+            //die();
+            $Auth = User::where('tenancy_id',$request->tenant_id)->first();
+            setTenantConnection($Auth);
 
             // ✅ COMMON LOGIC
 
@@ -191,11 +185,14 @@ class UserApiController extends Controller
                 return response()->json(['message' => 'User not found.'], 404);
             }
 
-            tenancy()->end();
+            return response()->json($user);
+        }else{
+            $Auth = $request->user();
+            setTenantConnection($Auth);
+
+            $user = User::find($request->id);
+
+            return response()->json($user);
         }
-
-        $user = User::find($request->id);
-
-        return response()->json($user);
     }
 }
