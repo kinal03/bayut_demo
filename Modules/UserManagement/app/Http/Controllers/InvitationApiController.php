@@ -487,10 +487,6 @@ class InvitationApiController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        if ($request->filled('from_date') && $request->filled('to_date')) {
-            $query->whereBetween('created_at', [$request->from_date, $request->to_date]);
-        }
-
         $inviate = $query->orderBy($sort, $dir)->paginate($limit);
 
         return response()->json([
