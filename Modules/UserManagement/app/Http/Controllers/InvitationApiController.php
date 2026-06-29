@@ -499,4 +499,114 @@ class InvitationApiController extends Controller
             'data' => $inviate
         ]);
     }
+
+    public function cancelInvitation(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->user_type === 'agency') {
+
+            setTenantConnection($user);
+
+            $invitationTable = 'invitation_users';
+            $invitationModel = TenantUserInvitations::class;
+
+        } else {
+
+            $invitationTable = 'super_admin_invitations';
+            $invitationModel = UserInvitations::class;
+        }
+
+        $invitation = $invitationModel::find($request->id);
+
+        if (!$invitation) {
+            return response()->json([
+                'message' => 'Invitation not found.'
+            ], 404);
+        }
+
+        $invitation->update([
+            'status' => 'rejected'
+        ]);
+
+        return response()->json([
+            'message' => 'Invitation cancelled successfully.'
+        ]);
+    }
+
+    public function resendInvite(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->user_type === 'agency') {
+
+            setTenantConnection($user);
+
+            $invitationTable = 'invitation_users';
+            $invitationModel = TenantUserInvitations::class;
+            $user_type = 'agent';
+
+        } else {
+
+            $invitationTable = 'super_admin_invitations';
+            $invitationModel = UserInvitations::class;
+            $user_type = 'agency';
+        }
+
+        $invitation = $invitationModel::where('id', $request->id)
+            ->whereIn('status', ['expired', 'rejected'])
+            ->first();
+
+        if (!$invitation) {
+            return response()->json([
+                'message' => 'Only expired or rejected invitations can be resent.'
+            ], 422);
+        }
+
+        $invitation->update([
+            'status' => 'pending'
+        ]);
+
+        $payload = [
+            'id'         => $invitation->id,
+            'token'      => $invitation->token,
+            'email'      => $invitation->email,
+            'first_name' => $invitation->first_name,
+            'last_name'  => $invitation->last_name,
+            'tenant_id'  => $invitation->tenant_id,
+            'user_type'  => $user_type,
+        ];
+
+        $encrypted = Crypt::encryptString(
+            json_encode($payload)
+        );
+
+        $frontendUrl = rtrim(config('app.frontend_url'), '/')
+            . '/accept-invitation?data='
+            . urlencode($encrypted);
+
+        DB::setDefaultConnection('mysql');
+
+        SendInvitationMailJob::dispatch(
+            $invitation->email,
+            [
+                'first_name' => $invitation->first_name,
+                'last_name' => $invitation->last_name,
+                'email' => $invitation->email,
+                'expires_at' => $invitation->expires_at,
+            ],
+            [
+                'name' => trim(
+                    ($user->first_name ?? '') . ' ' .
+                    ($user->last_name ?? '')
+                ),
+                'email' => $user->email,
+            ],
+            $frontendUrl
+        )->onConnection('database');
+
+        return response()->json([
+            'message' => 'Invitation resent successfully.'
+        ]);
+    }
 }

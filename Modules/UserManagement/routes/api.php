@@ -22,6 +22,8 @@ Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctu
     //send invitation
     Route::post('send-invite', [InvitationApiController::class, 'sendInvite']);
     Route::get('invitation-list', [InvitationApiController::class, 'invitationList']);
+    Route::post('cancel-invite', [InvitationApiController::class, 'cancelInvitation']);
+    Route::post('resend-invite', [InvitationApiController::class, 'resendInvite']);
 
     //User Management
     Route::get('get-agency', [UserApiController::class, 'getAllAgency']);

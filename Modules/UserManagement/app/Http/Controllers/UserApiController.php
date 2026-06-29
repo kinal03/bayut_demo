@@ -175,7 +175,7 @@ class UserApiController extends Controller
 
         if ($request->filled('tenant_id')) {
             $tenant = Tenant::find($request->tenant_id);
-            $User = User::find($request->id);
+            $User = User::find($request->tenant_id);
             setTenantConnection($User);
 
             if (!$tenant) {
