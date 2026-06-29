@@ -81,11 +81,12 @@ class UserApiController extends Controller
 
     public function getAgents(Request $request){
         $user = $request->user();
-        if($user->user_type != 'agency'){
+      
+        if ($user->user_type == 'super_admin') {
+            $authUser = User::find($request->id);
+            setTenantConnection($authUser);
+        } else {
             setTenantConnection($user);
-        }else{
-            $Auth = User::find($request->id);
-            setTenantConnection($Auth);
         }
 
         $limit = $request->limit ?? 10;
@@ -142,16 +143,22 @@ class UserApiController extends Controller
 
         $agents = $query->orderBy($sort, $dir)->paginate($limit);
 
-        $agents->getCollection()->transform(function ($agency) {
+        $totalAgents = User::where('user_type', 'agent')->count();
 
-            $agency->total_agents = User::count();
-            $agency->active_agents = User::where('is_blocked',0)->count();
-            $agency->blocked_agents = User::where('is_blocked',1)->count();
+        $activeAgents = User::where('user_type', 'agent')
+            ->where('is_blocked', 0)
+            ->count();
 
-            return $agency;
-        });
+        $blockedAgents = User::where('user_type', 'agent')
+            ->where('is_blocked', 1)
+            ->count();
 
-        return response()->json($agents);
+        return response()->json([
+            'agents' => $agents,
+            'total_agents' => $totalAgents,
+            'active_agents' => $activeAgents,
+            'blocked_agents' => $blockedAgents
+        ]);
     }
 
     public function getUserDetails(Request $request){
