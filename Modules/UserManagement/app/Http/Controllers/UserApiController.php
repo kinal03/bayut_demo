@@ -163,6 +163,7 @@ class UserApiController extends Controller
 
     public function getUserDetails(Request $request){
         $Auth = $request->user();
+        setTenantConnection($Auth);
 
         $validator = Validator::make($request->all(), [
             'id' => 'required',
@@ -174,13 +175,14 @@ class UserApiController extends Controller
 
         if ($request->filled('tenant_id')) {
             $tenant = Tenant::find($request->tenant_id);
+            $User = User::find($request->id);
+            setTenantConnection($User);
 
             if (!$tenant) {
                 return response()->json(['message' => 'Tenant not found.'], 404);
             }
 
             // ✅ COMMON LOGIC
-            setTenantConnection($Auth);
 
             // tenancy()->initialize($tenant);
             $user = User::find($request->id);
