@@ -13,10 +13,23 @@ use Carbon\Carbon;
 use Modules\RealEstate\Models\Features,Modules\RealEstate\Models\Properties,Modules\RealEstate\Models\PropertiesImages,Modules\RealEstate\Models\PropertyFeatures,Modules\UserManagement\App\Models\User;
 use Modules\RealEstate\Services\ImageService;
 use Illuminate\Support\Facades\Storage;
-    use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 
 class PropertiesApiController extends Controller
 {
+
+    #[OA\Get(
+            path: '/api/properties',
+            tags: ['Properties'],
+            summary: 'Get properties',
+            responses: [
+                new OA\Response(
+                    response: 200,
+                    description: 'Success'
+                )
+            ]
+        )]
     public function index(Request $request)
     {
         $user = User::find($request->id);

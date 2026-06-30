@@ -30,4 +30,6 @@ Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctu
     Route::get('get-agents', [UserApiController::class, 'getAgents']);
     Route::get('user-details', [UserApiController::class, 'getUserDetails']);
     Route::post('block-agency', [UserApiController::class, 'blockAgency']);
+    Route::post('delete-agent', [UserApiController::class, 'deleteAgents']);
+    Route::post('block-agent', [UserApiController::class, 'blockAgent']);
 });

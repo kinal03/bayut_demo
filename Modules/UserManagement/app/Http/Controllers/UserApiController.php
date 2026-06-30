@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\UserManagement\App\Models\User,Modules\UserManagement\App\Models\Tenant;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class UserApiController extends Controller
@@ -222,5 +223,67 @@ class UserApiController extends Controller
         $agents = User::where('tenancy_id', $user->tenancy_id)->update(['is_blocked' => $request->is_blocked]);
 
         return response()->json(['message' => 'Agency blocked status updated.']);
+    }
+
+    public function deleteAgents(Request $request){
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+        $Auth = $request->user();
+        setTenantConnection($Auth);
+
+        $user = User::find($request->user_id);
+        if (!$user) {
+            tenancy()->end();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Agent not found.'
+            ], 404);
+        }
+
+        if (!empty($user->profile_picture)) {
+            $oldPath = str_replace('storage/', '', $user->profile_picture);
+
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+        $user->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Agent deleted successfully.'
+        ]);
+    }
+
+    public function blockAgent(Request $request){
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'is_blocked' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $Auth = $request->user();
+        setTenantConnection($Auth);
+
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $user->is_blocked = $request->is_blocked;
+        $user->save();
+
+        return response()->json(['message' => 'Agent blocked status updated.']);
+
     }
 }
