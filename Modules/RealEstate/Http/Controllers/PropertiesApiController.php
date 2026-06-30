@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Modules\RealEstate\Models\Features,Modules\RealEstate\Models\Properties,Modules\RealEstate\Models\PropertiesImages,Modules\RealEstate\Models\PropertyFeatures,Modules\UserManagement\App\Models\User;
 use Modules\RealEstate\Services\ImageService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
@@ -454,5 +455,37 @@ class PropertiesApiController extends Controller
             'success' => true,
             'message' => 'Property '.ucfirst($request->moderation_status).' successfully.'
         ], 200);
+    }
+
+    public function deleteImage(Request $request, $id)
+    {
+        $user = $request->user();
+        setTenantConnection($user);
+
+        $image = PropertiesImages::find($id);
+
+        if (!$image) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Image not found'
+            ], 404);
+        }
+
+        // ✅ Delete file (only local)
+        if (!empty($user->image_path)) {
+            $oldPath = str_replace('storage/', '', $user->profile_picture);
+
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        // ✅ Delete DB record
+        $image->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image deleted successfully'
+        ]);
     }
 }

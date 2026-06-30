@@ -7,7 +7,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Modules\UserManagement\App\Models\User,Modules\UserManagement\App\Models\Tenant;
+use Modules\UserManagement\App\Models\User,Modules\UserManagement\App\Models\Tenant,Modules\UserManagement\App\Models\CentralTenantTelations,Modules\UserManagement\App\Models\TenantUserInvitations;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -253,6 +253,8 @@ class UserApiController extends Controller
                 Storage::disk('public')->delete($oldPath);
             }
         }
+        TenantUserInvitations::where('email',$user->email)->delete();
+        CentralTenantTelations::on('mysql')->where('email',$user->email)->delete();
         $user->delete();
 
         return response()->json([

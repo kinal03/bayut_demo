@@ -12,5 +12,6 @@ Route::middleware(\Modules\UserManagement\App\Http\Middleware\AuthenticateSanctu
     Route::apiResource('properties', PropertiesApiController::class);
     Route::post('/upload-temp-image', [PropertiesApiController::class, 'uploadTempImage']);
     Route::post('/approve-properties', [PropertiesApiController::class, 'approveProperties']);
+    Route::delete('/properties/image/{id}', [PropertiesApiController::class, 'deleteImage']);
 
 });
