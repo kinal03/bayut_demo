@@ -1,4 +1,6 @@
 {
     "UserManagement": true,
-    "RealEstate": true
+    "RealEstate": true,
+    "FrontendAuth": true,
+    "Location": true
 }

@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use Modules\UserManagement\App\Models\User;
 
 return [
 
@@ -38,9 +38,29 @@ return [
     */
 
     'guards' => [
-        'web' => [
+        'sanctum' => [
+            'driver' => 'sanctum',
+            'provider' => 'central_users',
+        ],
+
+        'frontend' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'frontend_users',
+        ],
+
+        'central_api' => [
+            'driver' => 'sanctum',
+            'provider' => 'central_users',
+        ],
+
+        'tenant_api' => [
+            'driver' => 'sanctum',
+            'provider' => 'tenant_users',
+        ],
+
+        'frontend_api' => [
+            'driver' => 'sanctum',
+            'provider' => 'frontend_users',
         ],
     ],
 
@@ -62,15 +82,29 @@ return [
     */
 
     'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
-        ],
+        // 'users' => [
+        //     'driver' => 'eloquent',
+        //     'model' => env('AUTH_MODEL', User::class),
+        // ],
 
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+        'frontend_users' => [
+            'driver' => 'eloquent',
+            'model' => Modules\FrontendAuth\Model\FrontendUser::class,
+        ],
+
+        'central_users' => [
+            'driver' => 'eloquent',
+            'model' => User::class, // Central User Model
+        ],
+
+        'tenant_users' => [
+            'driver' => 'eloquent',
+            'model' => User::class, // Tenant User Model
+        ],
     ],
 
     /*

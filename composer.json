@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "darkaonline/l5-swagger": "^11.1",
+        "firebase/php-jwt": "^7.1",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10.1",
@@ -29,7 +30,9 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Modules\\UserManagement\\": "Modules/UserManagement/",
-            "Modules\\RealEstate\\": "Modules/RealEstate/"
+            "Modules\\RealEstate\\": "Modules/RealEstate/",
+            "Modules\\Location\\": "Modules/Location/",
+            "Modules\\FrontendAuth\\": "Modules/FrontendAuth/"
         },
         "files": [
             "Modules/UserManagement/app/Helpers/TenantHelper.php"

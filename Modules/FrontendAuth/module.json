@@ -1,0 +1,11 @@
+{
+    "name": "FrontendAuth",
+    "alias": "frontendauth",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\FrontendAuth\\Providers\\FrontendAuthServiceProvider"
+    ],
+    "files": []
+}

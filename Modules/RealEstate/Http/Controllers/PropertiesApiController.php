@@ -15,22 +15,9 @@ use Modules\RealEstate\Services\ImageService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
-use OpenApi\Attributes as OA;
 
 class PropertiesApiController extends Controller
 {
-
-    #[OA\Get(
-            path: '/api/properties',
-            tags: ['Properties'],
-            summary: 'Get properties',
-            responses: [
-                new OA\Response(
-                    response: 200,
-                    description: 'Success'
-                )
-            ]
-        )]
     public function index(Request $request)
     {
         $user = User::find($request->id);
@@ -76,7 +63,8 @@ class PropertiesApiController extends Controller
                 ->orWhere('location', 'like', '%' . $request->search . '%')
                 ->orWhere('price', 'like', '%' . $request->search . '%')
                 ->orWhere('total_bedroom', 'like', '%' . $request->search . '%')
-                ->orWhere('total_bedroom', 'like', '%' . $request->search . '%');
+                ->orWhere('total_bathroom', 'like', '%' . $request->search . '%')
+                ->orWhere('area_size', 'like', '%' . $request->search . '%');
             });
         }
 
@@ -86,6 +74,10 @@ class PropertiesApiController extends Controller
 
         if ($request->has('moderation_status') && !empty($request->moderation_status)) {
             $query->where('moderation_status', $request->moderation_status);
+        }
+
+        if($request->has('purpose') && !empty($request->purpose)){
+            $query->where('purpose', $request->purpose);
         }
 
         if ($request->filled('from_date') && $request->filled('to_date')) {
