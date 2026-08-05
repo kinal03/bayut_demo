@@ -29,7 +29,9 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\UserManagement\\": "Modules/UserManagement/",
+            "Modules\\UserManagement\\App\\": "Modules/UserManagement/app/",
+            "Modules\\UserManagement\\Database\\Factories\\": "Modules/UserManagement/database/factories/",
+            "Modules\\UserManagement\\Database\\Seeders\\": "Modules/UserManagement/database/seeders/",
             "Modules\\RealEstate\\": "Modules/RealEstate/",
             "Modules\\Location\\": "Modules/Location/",
             "Modules\\FrontendAuth\\": "Modules/FrontendAuth/"

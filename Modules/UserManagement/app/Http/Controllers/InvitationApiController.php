@@ -291,7 +291,9 @@ class InvitationApiController extends Controller
 
         $connection = 'tenant';
         $tenantId = (string) Str::uuid();
-        $dbName = 'tenant_' . Str::lower(Str::random(12));
+        $dbName = config('tenancy.database.prefix')
+            . Str::lower(Str::random(12))
+            . config('tenancy.database.suffix');
 
         try {
 
@@ -399,7 +401,7 @@ class InvitationApiController extends Controller
             |--------------------------------------------------------------------------
             */
             try {
-                DB::statement("DROP DATABASE IF EXISTS `$dbName`");
+                DB::connection($connection)->statement("DROP DATABASE IF EXISTS `$dbName`");
             } catch (\Exception $ex) {
             }
 

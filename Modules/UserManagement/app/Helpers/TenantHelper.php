@@ -23,23 +23,17 @@ if (!function_exists('setTenantConnection')) {
             }
 
             // dynamic DB connection
+            $connection = config('database.connections.mysql');
+
+            $connection['database'] = $tenant->database;
+
             config([
-                'database.connections.tenant_dynamic' => [
-                    'driver' => 'mysql',
-                    'host' => env('DB_HOST', '127.0.0.1'),
-                    'port' => '3306',
-                    'database' => $tenant->database,
-                    'username' => env('DB_USERNAME', 'root'),
-                    'password' => env('DB_PASSWORD', ''),
-                    'charset' => 'utf8mb4',
-                    'collation' => 'utf8mb4_unicode_ci',
-                ]
+                'database.connections.tenant_dynamic' => $connection,
             ]);
 
             DB::purge('tenant_dynamic');
             DB::reconnect('tenant_dynamic');
 
-            // set default connection
             config(['database.default' => 'tenant_dynamic']);
         } else {
             config(['database.default' => 'mysql']); // central
@@ -51,17 +45,16 @@ if (!function_exists('getTenantConnection')) {
 
     function getTenantConnection($tenant)
     {
+        // Base the tenant connection on the real 'mysql' connection config
+        // (resolved via config(), not env()) so this keeps working when
+        // config is cached (php artisan config:cache), where env() calls
+        // outside config/*.php return null.
+        $connection = config('database.connections.mysql');
+
+        $connection['database'] = $tenant->database;
+
         config([
-            "database.connections.tenant_mysql" => [
-                'driver' => 'mysql',
-                'host' => env('DB_HOST', '127.0.0.1'),
-                'port' => '3306',
-                'database' => $tenant->database,
-                'username' => env('DB_USERNAME', 'root'),
-                'password' => env('DB_PASSWORD', ''),
-                'charset' => 'utf8mb4',
-                'collation' => 'utf8mb4_unicode_ci',
-            ]
+            'database.connections.tenant_mysql' => $connection,
         ]);
 
         DB::purge('tenant_mysql');
