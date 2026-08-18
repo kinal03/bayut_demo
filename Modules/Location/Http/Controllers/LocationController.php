@@ -209,6 +209,7 @@ class LocationController extends Controller
         $state->update([
             'name'       => $request->name,
             'country_id' => $request->country_id,
+            'status' => $request->status,
             'updated_at' => now()
         ]);
 
@@ -548,7 +549,8 @@ class LocationController extends Controller
         $city->update([
             'name'       => $request->name,
             'state_id'   => $request->state_id,
-            'country_id' => $request->country_id
+            'country_id' => $request->country_id,
+          	'status' => $request->status,
         ]);
 
         /*
